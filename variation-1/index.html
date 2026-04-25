@@ -637,11 +637,15 @@
       );
 
       // --- 6.5 :: word montage ---
+      // Each bg stays on until the next one paints over it, so there are
+      // never any "off" frames where the marquee/title bleed through.
       tl.set("#montage", { opacity: 1 }, 6.5);
       const montageWords = ["#word1", "#word2", "#word3", "#word4", "#word5"];
       const montageBgs   = ["#bg1",   "#bg2",   "#bg3",   "#bg4",   "#bg5"];
+      const montageStep = 0.32;
+      const montageStart = 6.5;
       montageWords.forEach((w, i) => {
-        const t = 6.5 + i * 0.32;
+        const t = montageStart + i * montageStep;
         tl.set(montageBgs[i], { opacity: 1 }, t);
         tl.fromTo(
           w,
@@ -649,9 +653,10 @@
           { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(1.6)" },
           t
         );
-        tl.set(montageBgs[i], { opacity: 0 }, t + 0.28);
-        tl.set(w, { opacity: 0 }, t + 0.28);
+        tl.set(w, { opacity: 0 }, t + montageStep - 0.02);
       });
+      // kill all montage bgs together at the end
+      tl.set([".montage .bg"], { opacity: 0 }, 8.4);
       tl.set("#montage", { opacity: 0 }, 8.4);
 
       // --- 8.4 :: smash to white flash ---
