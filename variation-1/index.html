@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Acme Prints — 25 Years</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --c: #00c2ff;   /* cyan */
+      --m: #ff2bd6;   /* magenta */
+      --y: #ffd400;   /* yellow */
+      --k: #0a0a0a;   /* key */
+      --r: #ff2e2e;   /* brand red accent */
+      --paper: #f6f1e7;
+    }
+
+    html, body { margin: 0; padding: 0; background: var(--k); overflow: hidden; }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background:
+        radial-gradient(ellipse at 50% 35%, #1a1a1a 0%, #0a0a0a 65%);
+      color: #fff;
+      font-family: "Inter", system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ===== background layers ===== */
+
+    /* halftone dot field that pulses behind the title */
+    .halftone {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.5) 1.4px, transparent 1.6px);
+      background-size: 18px 18px;
+      opacity: 0;
+      mix-blend-mode: screen;
+      mask-image: radial-gradient(ellipse at 50% 38%, #000 30%, transparent 65%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 38%, #000 30%, transparent 65%);
+    }
+
+    /* paper grain */
+    .grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.07;
+      background-image: radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+
+    /* corner registration marks (SVG drawn) */
+    .reg {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      opacity: 0;
+    }
+    .reg.tl { top: 60px;    left: 60px; }
+    .reg.tr { top: 60px;    right: 60px; transform: scaleX(-1); }
+    .reg.bl { bottom: 60px; left: 60px; transform: scaleY(-1); }
+    .reg.br { bottom: 60px; right: 60px; transform: scale(-1, -1); }
+
+    .reg svg { width: 100%; height: 100%; display: block; }
+    .reg path, .reg circle { fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 2; }
+
+    .corner-label {
+      position: absolute;
+      font-family: "Space Mono", ui-monospace, monospace;
+      font-size: 16px;
+      letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      opacity: 0;
+    }
+    .corner-label.tl { top: 70px;    left: 200px; }
+    .corner-label.tr { top: 70px;    right: 200px; text-align: right; }
+    .corner-label.bl { bottom: 70px; left: 200px; }
+    .corner-label.br { bottom: 70px; right: 200px; text-align: right; }
+
+    /* ===== title ===== */
+
+    .title-wrap {
+      position: absolute;
+      top: 110px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      height: 600px;
+    }
+
+    .twentyfive,
+    .tf-plate {
+      font-family: "Archivo Black", sans-serif;
+      font-size: 580px;
+      line-height: 0.85;
+      letter-spacing: -0.04em;
+      display: inline-block;
+    }
+
+    .tf-stack {
+      position: relative;
+      display: inline-block;
+    }
+    /* CMYK plates that animate in offset, then converge */
+    .tf-plate {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      mix-blend-mode: screen;
+      will-change: transform, opacity;
+      opacity: 0;
+    }
+    .tf-plate.c { color: var(--c); }
+    .tf-plate.m { color: var(--m); }
+    .tf-plate.y { color: var(--y); }
+
+    .twentyfive {
+      position: relative;
+      color: #fff;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    /* ===== years row ===== */
+
+    .years-row {
+      position: absolute;
+      top: 720px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: "Archivo Black", sans-serif;
+      font-size: 140px;
+      letter-spacing: 0.04em;
+      color: #fff;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+    }
+    .years-row .accent {
+      display: inline-block;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--y);
+      transform: translateY(45px) scale(0);
+      box-shadow: 0 0 40px rgba(255,212,0,0.55);
+    }
+
+    /* ===== tagline ===== */
+
+    .tagline-mask {
+      position: absolute;
+      top: 920px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      overflow: hidden;
+      height: 60px;
+    }
+    .tagline {
+      display: inline-block;
+      font-family: "Inter", sans-serif;
+      font-weight: 800;
+      font-size: 48px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #f0f0f0;
+      transform: translateY(100%);
+    }
+
+    /* ===== ink splats (organic SVG) ===== */
+
+    .splat {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    .splat svg { width: 100%; height: 100%; display: block; }
+    .splat.red svg path     { fill: var(--r); }
+    .splat.yellow svg path  { fill: var(--y); }
+    .splat.cyan svg path    { fill: var(--c); }
+    .splat.magenta svg path { fill: var(--m); }
+    .splat.lime svg path    { fill: #9bff3f; }
+
+    .splat.red     { top: 130px;   left: 140px; }
+    .splat.yellow  { top: 200px;   right: 160px; }
+    .splat.cyan    { bottom: 240px; left: 220px; }
+    .splat.magenta { bottom: 200px; right: 200px; }
+    .splat.lime    { top: 470px;   left: 30px; }
+
+    /* ===== marquee ticker ===== */
+
+    .marquee {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      opacity: 0;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 60px;
+      white-space: nowrap;
+      will-change: transform;
+      padding-left: 60px;
+      align-items: center;
+      height: 100%;
+      font-family: "Space Mono", monospace;
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+    .marquee-track span:nth-child(odd) { color: var(--y); }
+    .marquee-track .sep {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--r);
+      flex: none;
+    }
+
+    /* ===== product word montage ===== */
+
+    .montage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .montage .word {
+      position: absolute;
+      font-family: "Archivo Black", sans-serif;
+      font-size: 260px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: #fff;
+      opacity: 0;
+      mix-blend-mode: difference;
+    }
+    .montage .bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+    }
+    .montage .bg.b1 { background: var(--r); }
+    .montage .bg.b2 { background: var(--c); }
+    .montage .bg.b3 { background: var(--y); }
+    .montage .bg.b4 { background: var(--m); }
+    .montage .bg.b5 { background: #9bff3f; }
+
+    /* ===== white flash + lockup ===== */
+
+    .flash {
+      position: absolute;
+      inset: 0;
+      background: var(--paper);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .lockup {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      opacity: 0;
+    }
+    .lockup .wordmark {
+      font-family: "Archivo Black", sans-serif;
+      font-size: 230px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: #fff;
+      position: relative;
+    }
+    .lockup .wordmark .dot {
+      display: inline-block;
+      width: 44px;
+      height: 44px;
+      background: var(--r);
+      border-radius: 50%;
+      margin-left: 18px;
+      vertical-align: 18px;
+      box-shadow: 0 0 0 0 rgba(255,46,46,0.65);
+      transform: scale(0);
+    }
+    .lockup .sub {
+      font-family: "Inter", sans-serif;
+      font-weight: 600;
+      font-size: 38px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--y);
+      opacity: 0;
+    }
+    .lockup .url {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 30px;
+      letter-spacing: 0.18em;
+      color: #9a9a9a;
+      opacity: 0;
+    }
+    .lockup .underline {
+      width: 0;
+      height: 3px;
+      background: var(--r);
+      margin-top: -22px;
+    }
+
+    /* ===== press swipe ===== */
+
+    .press-bar {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: -10%;
+      width: 14%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95) 50%, transparent);
+      opacity: 0;
+      mix-blend-mode: screen;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="acme-25-hero"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+  >
+    <!-- background layers -->
+    <div class="halftone" id="halftone"></div>
+
+    <!-- registration marks -->
+    <div class="reg tl" id="reg-tl">
+      <svg viewBox="0 0 110 110">
+        <path d="M0 55 L40 55 M70 55 L110 55 M55 0 L55 40 M55 70 L55 110" />
+        <circle cx="55" cy="55" r="22" />
+        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.55)" stroke="none" />
+      </svg>
+    </div>
+    <div class="reg tr" id="reg-tr">
+      <svg viewBox="0 0 110 110">
+        <path d="M0 55 L40 55 M70 55 L110 55 M55 0 L55 40 M55 70 L55 110" />
+        <circle cx="55" cy="55" r="22" />
+        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.55)" stroke="none" />
+      </svg>
+    </div>
+    <div class="reg bl" id="reg-bl">
+      <svg viewBox="0 0 110 110">
+        <path d="M0 55 L40 55 M70 55 L110 55 M55 0 L55 40 M55 70 L55 110" />
+        <circle cx="55" cy="55" r="22" />
+        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.55)" stroke="none" />
+      </svg>
+    </div>
+    <div class="reg br" id="reg-br">
+      <svg viewBox="0 0 110 110">
+        <path d="M0 55 L40 55 M70 55 L110 55 M55 0 L55 40 M55 70 L55 110" />
+        <circle cx="55" cy="55" r="22" />
+        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.55)" stroke="none" />
+      </svg>
+    </div>
+
+    <div class="corner-label tl">CMYK · ACME PRESS</div>
+    <div class="corner-label tr">PROOF · 01 / 25</div>
+    <div class="corner-label bl">EST · 2001</div>
+    <div class="corner-label br">acmeprints.com</div>
+
+    <!-- organic ink splats -->
+    <div class="splat red"><svg viewBox="0 0 200 200"><path d="M100,20 C140,12 180,40 178,82 C176,118 198,134 188,162 C176,194 134,196 108,182 C84,170 56,196 32,176 C6,154 16,118 28,96 C40,72 16,44 40,28 C62,12 84,28 100,20 Z"/></svg></div>
+    <div class="splat yellow"><svg viewBox="0 0 200 200"><path d="M104,16 C148,22 178,52 184,96 C190,138 168,172 132,184 C96,196 56,180 38,148 C18,114 22,68 56,40 C72,26 84,12 104,16 Z M168,72 L184,60 L172,86 Z M40,160 L26,176 L52,170 Z"/></svg></div>
+    <div class="splat cyan"><svg viewBox="0 0 200 200"><path d="M96,12 C140,8 180,38 184,86 C188,128 162,168 122,180 C82,192 38,176 22,138 C6,98 26,52 64,32 C76,24 86,16 96,12 Z M188,40 L196,28 L184,36 Z M14,180 L4,194 L20,184 Z"/></svg></div>
+    <div class="splat magenta"><svg viewBox="0 0 200 200"><path d="M100,20 C146,18 184,52 184,98 C184,142 152,184 102,184 C56,184 16,154 16,108 C16,72 38,38 70,26 C82,22 90,20 100,20 Z M188,140 L200,150 L184,156 Z"/></svg></div>
+    <div class="splat lime"><svg viewBox="0 0 200 200"><path d="M100,16 C148,18 188,58 184,108 C180,150 144,186 100,186 C58,186 18,154 18,110 C18,72 44,36 78,22 C86,18 92,16 100,16 Z"/></svg></div>
+
+    <!-- act 1: title -->
+    <div
+      class="clip"
+      id="act1"
+      data-start="0"
+      data-duration="6"
+      data-track-index="0"
+    >
+      <div class="title-wrap">
+        <div class="tf-stack">
+          <span class="tf-plate c" id="plate-c">25</span>
+          <span class="tf-plate m" id="plate-m">25</span>
+          <span class="tf-plate y" id="plate-y">25</span>
+          <span class="twentyfive" id="twentyfive">25</span>
+        </div>
+      </div>
+
+      <div class="years-row" id="years-row">
+        <span>YEARS</span>
+        <span class="accent" id="years-accent"></span>
+      </div>
+    </div>
+
+    <!-- act 2: tagline -->
+    <div
+      class="clip"
+      id="act2"
+      data-start="3"
+      data-duration="4"
+      data-track-index="1"
+    >
+      <div class="tagline-mask">
+        <div class="tagline" id="tagline">Of making you look great</div>
+      </div>
+    </div>
+
+    <!-- marquee ticker -->
+    <div class="marquee" id="marquee">
+      <div class="marquee-track" id="marquee-track">
+        <span>APPAREL</span><span class="sep"></span>
+        <span>SCREEN PRINTING</span><span class="sep"></span>
+        <span>EMBROIDERY</span><span class="sep"></span>
+        <span>SIGNAGE</span><span class="sep"></span>
+        <span>VEHICLE WRAPS</span><span class="sep"></span>
+        <span>PROMO SWAG</span><span class="sep"></span>
+        <span>STICKERS</span><span class="sep"></span>
+        <span>POSTERS</span><span class="sep"></span>
+        <span>LIVE EVENTS</span><span class="sep"></span>
+        <span>APPAREL</span><span class="sep"></span>
+        <span>SCREEN PRINTING</span><span class="sep"></span>
+        <span>EMBROIDERY</span><span class="sep"></span>
+        <span>SIGNAGE</span><span class="sep"></span>
+      </div>
+    </div>
+
+    <!-- act 3: product word montage -->
+    <div
+      class="clip"
+      id="act3"
+      data-start="7"
+      data-duration="2"
+      data-track-index="2"
+    >
+      <div class="montage" id="montage">
+        <div class="bg b1" id="bg1"></div>
+        <div class="bg b2" id="bg2"></div>
+        <div class="bg b3" id="bg3"></div>
+        <div class="bg b4" id="bg4"></div>
+        <div class="bg b5" id="bg5"></div>
+        <div class="word" id="word1">APPAREL.</div>
+        <div class="word" id="word2">SIGNAGE.</div>
+        <div class="word" id="word3">SWAG.</div>
+        <div class="word" id="word4">EVENTS.</div>
+        <div class="word" id="word5">DESIGN.</div>
+      </div>
+    </div>
+
+    <!-- act 4: lockup -->
+    <div
+      class="clip"
+      id="act4"
+      data-start="9"
+      data-duration="4"
+      data-track-index="3"
+    >
+      <div class="flash" id="flash"></div>
+      <div class="lockup" id="lockup">
+        <div class="wordmark">ACME PRINTS<span class="dot" id="lockup-dot"></span></div>
+        <div class="underline" id="lockup-underline"></div>
+        <div class="sub">25 years · still printing</div>
+        <div class="url">acmeprints.com</div>
+      </div>
+    </div>
+
+    <!-- press swipe overlay -->
+    <div class="press-bar" id="press-bar"></div>
+
+    <!-- grain on top -->
+    <div class="grain"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script>
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+      // --- 0.0 :: registration marks + corner labels draw in ---
+      tl.fromTo(
+        ".reg",
+        { opacity: 0, scale: 0.6, rotation: -15 },
+        { opacity: 1, scale: 1, rotation: 0, duration: 0.55, stagger: 0.06, ease: "back.out(1.8)" },
+        0.05
+      );
+      tl.fromTo(
+        ".corner-label",
+        { opacity: 0, x: 0 },
+        { opacity: 1, duration: 0.5, stagger: 0.05 },
+        0.35
+      );
+
+      // --- 0.7 :: halftone pulse ---
+      tl.fromTo(
+        "#halftone",
+        { opacity: 0, scale: 1.15 },
+        { opacity: 0.55, scale: 1, duration: 0.7, ease: "power2.out" },
+        0.7
+      );
+
+      // --- 0.9 :: CMYK plates fly in offset ---
+      tl.fromTo(
+        "#plate-c",
+        { opacity: 0, x: -180, y: -40 },
+        { opacity: 0.95, x: -36, y: -16, duration: 0.7, ease: "power3.out" },
+        0.9
+      );
+      tl.fromTo(
+        "#plate-m",
+        { opacity: 0, x: 220, y: 40 },
+        { opacity: 0.95, x: 30, y: 14, duration: 0.7, ease: "power3.out" },
+        0.95
+      );
+      tl.fromTo(
+        "#plate-y",
+        { opacity: 0, x: 60, y: 180 },
+        { opacity: 0.95, x: 8, y: 32, duration: 0.7, ease: "power3.out" },
+        1.0
+      );
+
+      // --- 1.7 :: plates converge to register ---
+      tl.to(
+        ["#plate-c", "#plate-m", "#plate-y"],
+        { x: 0, y: 0, duration: 0.5, ease: "power4.inOut" },
+        1.7
+      );
+
+      // --- 1.95 :: white "25" stamps in over the plates ---
+      tl.fromTo(
+        "#twentyfive",
+        { opacity: 0, scale: 0.85, rotation: -2 },
+        { opacity: 1, scale: 1, rotation: 0, duration: 0.45, ease: "back.out(2.2)" },
+        1.95
+      );
+      // CMYK plates dim back to subtle aberration
+      tl.to(
+        ["#plate-c", "#plate-m", "#plate-y"],
+        { opacity: 0.18, duration: 0.4 },
+        2.1
+      );
+
+      // --- 2.0 :: ink splats burst around the title ---
+      tl.fromTo(
+        ".splat",
+        { opacity: 0, scale: 0, rotation: -25 },
+        {
+          opacity: 1,
+          scale: 1,
+          rotation: 0,
+          duration: 0.6,
+          ease: "back.out(1.8)",
+          stagger: { each: 0.07, from: "random" },
+        },
+        2.0
+      );
+      // splats settle into ambient
+      tl.to(".splat", { opacity: 0.5, duration: 1.0 }, 2.9);
+
+      // --- 2.4 :: YEARS row drops in ---
+      tl.fromTo(
+        "#years-row",
+        { opacity: 0, y: 60 },
+        { opacity: 1, y: 0, duration: 0.55 },
+        2.4
+      );
+      tl.to(
+        "#years-accent",
+        { scale: 1, duration: 0.45, ease: "back.out(2.5)" },
+        2.7
+      );
+
+      // --- 3.2 :: tagline mask reveal ---
+      tl.fromTo(
+        "#tagline",
+        { y: "100%" },
+        { y: "0%", duration: 0.7, ease: "power3.out" },
+        3.2
+      );
+
+      // --- 3.4 :: marquee fades up & scrolls ---
+      tl.to("#marquee", { opacity: 1, duration: 0.5 }, 3.4);
+      tl.fromTo(
+        "#marquee-track",
+        { x: 0 },
+        { x: -1400, duration: 6, ease: "none" },
+        3.5
+      );
+
+      // --- 4.0 :: subtle drift on the title for cinematic motion ---
+      tl.to(
+        [".tf-stack", "#years-row"],
+        { y: -30, duration: 2, ease: "power1.inOut" },
+        4.0
+      );
+
+      // --- 5.6 :: press swipe transition out ---
+      tl.fromTo(
+        "#press-bar",
+        { x: -200, opacity: 0 },
+        { x: 2200, opacity: 1, duration: 0.7, ease: "power2.inOut" },
+        5.6
+      );
+      tl.to("#press-bar", { opacity: 0, duration: 0.2 }, 6.2);
+
+      // act 1+2 fade out
+      tl.to(
+        [".tf-stack", "#years-row", "#tagline", ".splat", "#halftone"],
+        { opacity: 0, duration: 0.4 },
+        6.0
+      );
+
+      // --- 6.5 :: word montage ---
+      tl.set("#montage", { opacity: 1 }, 6.5);
+      const montageWords = ["#word1", "#word2", "#word3", "#word4", "#word5"];
+      const montageBgs   = ["#bg1",   "#bg2",   "#bg3",   "#bg4",   "#bg5"];
+      montageWords.forEach((w, i) => {
+        const t = 6.5 + i * 0.32;
+        tl.set(montageBgs[i], { opacity: 1 }, t);
+        tl.fromTo(
+          w,
+          { opacity: 0, scale: 0.85 },
+          { opacity: 1, scale: 1, duration: 0.18, ease: "back.out(1.6)" },
+          t
+        );
+        tl.set(montageBgs[i], { opacity: 0 }, t + 0.28);
+        tl.set(w, { opacity: 0 }, t + 0.28);
+      });
+      tl.set("#montage", { opacity: 0 }, 8.4);
+
+      // --- 8.4 :: smash to white flash ---
+      tl.fromTo(
+        "#flash",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.12, ease: "power2.in" },
+        8.4
+      );
+      tl.to("#flash", { opacity: 0, duration: 0.45, ease: "power2.out" }, 8.55);
+
+      // --- 8.6 :: final lockup fades/scales in behind the flash ---
+      tl.fromTo(
+        "#lockup",
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" },
+        8.55
+      );
+      // stamp the red dot
+      tl.fromTo(
+        "#lockup-dot",
+        { scale: 0 },
+        { scale: 1, duration: 0.35, ease: "back.out(3)" },
+        9.0
+      );
+      // ink ring pulse on the dot
+      tl.fromTo(
+        "#lockup-dot",
+        { boxShadow: "0 0 0 0 rgba(255,46,46,0.85)" },
+        { boxShadow: "0 0 0 80px rgba(255,46,46,0)", duration: 0.9, ease: "power2.out" },
+        9.05
+      );
+      // underline grows
+      tl.fromTo(
+        "#lockup-underline",
+        { width: 0 },
+        { width: 320, duration: 0.6, ease: "power3.out" },
+        9.2
+      );
+      tl.to("#lockup .sub",  { opacity: 1, duration: 0.5 }, 9.4);
+      tl.to("#lockup .url",  { opacity: 1, duration: 0.5 }, 9.7);
+
+      // hold to ~12.5
+      tl.to({}, { duration: 2.5 }, 10.0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["acme-25-hero"] = tl;
+
+      // browser preview autoplay
+      if (!window.__hyperframesRuntime) {
+        window.addEventListener("load", () => tl.play(0));
+      }
+    </script>
+  </div>
+</body>
+</html>

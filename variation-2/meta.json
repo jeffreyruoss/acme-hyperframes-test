@@ -1,0 +1,8 @@
+{
+  "name": "acme-lookbook",
+  "description": "Acme Prints product showcase — editorial lookbook spread on cream paper",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 12.5
+}

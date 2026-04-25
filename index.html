@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Acme Prints — Hyperframe Variations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Serif+Display&family=Inter:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --paper: #f6f1e7;
+      --red: #ff2e2e;
+      --ink: #161413;
+    }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: "Inter", system-ui, sans-serif; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 80px 40px; }
+    h1 {
+      font-family: "Archivo Black", sans-serif;
+      font-size: 72px; line-height: 0.95; letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    h1 .dot { display: inline-block; width: 18px; height: 18px; background: var(--red); border-radius: 50%; margin-left: 6px; vertical-align: 8px; }
+    .sub {
+      font-family: "Space Mono", monospace;
+      font-size: 14px; letter-spacing: 0.32em; text-transform: uppercase; color: #888;
+      margin-bottom: 60px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+    a.card {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 28px;
+      align-items: center;
+      padding: 28px 32px;
+      background: #131313;
+      border: 1px solid #222;
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    a.card:hover { border-color: var(--red); transform: translateY(-2px); }
+    a.card .num {
+      font-family: "DM Serif Display", serif;
+      font-size: 56px; line-height: 1; letter-spacing: -0.02em;
+      color: var(--red);
+    }
+    a.card .body h2 {
+      margin: 0 0 6px;
+      font-family: "Archivo Black", sans-serif;
+      font-size: 26px; letter-spacing: -0.01em;
+    }
+    a.card .body p {
+      margin: 0;
+      font-size: 15px; color: #aaa; line-height: 1.5;
+    }
+    a.card .arrow {
+      font-family: "Space Mono", monospace;
+      font-size: 18px; letter-spacing: 0.2em; color: #666;
+    }
+    a.card:hover .arrow { color: var(--red); }
+    .foot {
+      margin-top: 80px;
+      font-family: "Space Mono", monospace;
+      font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Acme Prints<span class="dot"></span></h1>
+    <div class="sub">Hyperframe variations · 1920×1080 · GSAP timelines</div>
+
+    <div class="grid">
+      <a class="card" href="variation-1/index.html">
+        <div class="num">01</div>
+        <div class="body">
+          <h2>25 Years — Brand Hero</h2>
+          <p>CMYK chromatic title, halftone, registration marks, organic ink splats, product-word montage with mix-blend-mode, marquee ticker, smash-to-paper lockup. ~12.5s.</p>
+        </div>
+        <div class="arrow">PLAY →</div>
+      </a>
+
+      <a class="card" href="variation-2/index.html">
+        <div class="num">02</div>
+        <div class="body">
+          <h2>Lookbook — Product Showcase</h2>
+          <p>Editorial spread on cream paper. 6-card product grid (T-shirts, mugs, posters, stickers, totes, hoodies) staggers in, page-flips into a Risograph hero panel, then to an "Order yours." CTA. ~12.5s.</p>
+        </div>
+        <div class="arrow">PLAY →</div>
+      </a>
+
+      <a class="card" href="variation-3/index.html">
+        <div class="num">03</div>
+        <div class="body">
+          <h2>Press Night — Live Event Reel</h2>
+          <p>Broadcast HUD with live timecode, geo-coords, signal bar. Diagonal "LIVE PRINTING" with chromatic ghosts, odometer counter (247 shirts), venue list, glitch transitions, "we bring the press to you" smash-cut to CTA. ~13.5s.</p>
+        </div>
+        <div class="arrow">PLAY →</div>
+      </a>
+    </div>
+
+    <div class="foot">Open in a 1920×1080 window for the intended composition</div>
+  </div>
+</body>
+</html>

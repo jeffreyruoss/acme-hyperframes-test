@@ -1,0 +1,8 @@
+{
+  "name": "acme-live-event",
+  "description": "Acme Prints live-event reel — broadcast-HUD aesthetic with glitch transitions",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 13.5
+}

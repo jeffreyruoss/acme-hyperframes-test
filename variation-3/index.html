@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Acme Prints — Live Event Reel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg:    #060606;
+      --red:   #ff1f1f;
+      --hot:   #ff5b3a;
+      --tape:  #ffd400;
+      --paper: #f3ede2;
+      --gray:  #9a9a9a;
+    }
+
+    html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: var(--bg);
+      color: #fff;
+      font-family: "Inter", system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ===== ambient layers ===== */
+
+    .scanlines {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.025) 0,
+        rgba(255,255,255,0.025) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      mix-blend-mode: screen;
+    }
+    .grain {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      background-image: radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+    .vignette {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+    }
+    .strobe {
+      position: absolute; inset: 0;
+      background: var(--red);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ===== broadcast HUD overlays (always on) ===== */
+
+    .hud {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      font-family: "Space Mono", ui-monospace, monospace;
+      font-size: 18px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      opacity: 0;
+    }
+    .hud .live {
+      position: absolute; top: 56px; left: 60px;
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,31,31,0.12);
+      border: 1px solid rgba(255,31,31,0.55);
+      padding: 12px 18px;
+      border-radius: 6px;
+      backdrop-filter: blur(2px);
+    }
+    .hud .live .dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 16px var(--red);
+    }
+    .hud .live .label {
+      font-weight: 700; letter-spacing: 0.32em; color: #fff;
+    }
+
+    .hud .tc {
+      position: absolute; top: 56px; right: 60px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+    }
+    .hud .tc .rec {
+      width: 12px; height: 12px;
+      background: var(--red);
+      border-radius: 2px;
+    }
+    .hud .geo {
+      position: absolute; bottom: 56px; left: 60px;
+      display: flex; gap: 24px;
+      color: rgba(255,255,255,0.65);
+      font-size: 14px; letter-spacing: 0.28em;
+    }
+    .hud .ch {
+      position: absolute; bottom: 56px; right: 60px;
+      display: flex; gap: 18px; align-items: center;
+      color: rgba(255,255,255,0.65);
+      font-size: 14px; letter-spacing: 0.28em;
+    }
+    .hud .ch .bar {
+      width: 80px; height: 6px;
+      background: linear-gradient(to right, var(--red) 0 60%, rgba(255,255,255,0.15) 60% 100%);
+      border-radius: 2px;
+    }
+
+    /* corner crosshairs */
+    .ch-mark {
+      position: absolute;
+      width: 28px; height: 28px;
+      border: 2px solid rgba(255,255,255,0.45);
+    }
+    .ch-mark.tl { top: 30px; left: 30px; border-right: none; border-bottom: none; }
+    .ch-mark.tr { top: 30px; right: 30px; border-left: none; border-bottom: none; }
+    .ch-mark.bl { bottom: 30px; left: 30px; border-right: none; border-top: none; }
+    .ch-mark.br { bottom: 30px; right: 30px; border-left: none; border-top: none; }
+
+    /* ===== act 1: kinetic title ===== */
+
+    .title {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 10px;
+      transform: rotate(-6deg);
+      opacity: 0;
+    }
+    .title .row {
+      position: relative;
+      font-family: "Anton", sans-serif;
+      font-size: 360px;
+      line-height: 0.85;
+      letter-spacing: -0.02em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .title .row .ghost-r,
+    .title .row .ghost-c {
+      position: absolute;
+      inset: 0;
+      mix-blend-mode: screen;
+    }
+    .title .row .ghost-r { color: var(--red);  transform: translate(-12px, 4px); }
+    .title .row .ghost-c { color: #00d2ff;     transform: translate(10px, -4px); }
+    .title .row.alt { color: var(--red); -webkit-text-stroke: 0; }
+    .title .row.alt span.outline {
+      color: transparent;
+      -webkit-text-stroke: 4px #fff;
+    }
+
+    .title-tape {
+      position: absolute;
+      bottom: 230px;
+      left: -50px;
+      right: -50px;
+      background: var(--tape);
+      color: #161413;
+      transform: rotate(-2deg);
+      padding: 14px 0;
+      font-family: "Space Mono", monospace;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+
+    /* ===== act 2: counter ===== */
+
+    .counter {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0;
+    }
+    .counter .digits {
+      font-family: "Anton", sans-serif;
+      font-size: 480px;
+      line-height: 0.85;
+      letter-spacing: -0.04em;
+      color: #fff;
+      display: flex;
+      gap: 8px;
+    }
+    .counter .digits .d {
+      display: inline-block;
+      width: 230px; text-align: center;
+      position: relative;
+    }
+    .counter .digits .d::before {
+      content: "";
+      position: absolute; left: 0; right: 0; bottom: -16px;
+      height: 4px; background: var(--red);
+      transform: scaleX(0); transform-origin: left;
+    }
+    .counter .digits .d.lit::before { transform: scaleX(1); }
+
+    .counter .label {
+      margin-top: 60px;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 80px;
+      letter-spacing: 0.18em;
+      color: #fff;
+    }
+    .counter .sub {
+      margin-top: 18px;
+      font-family: "Space Mono", monospace;
+      font-size: 22px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+    .counter .sidebar {
+      position: absolute; top: 200px; right: 120px;
+      width: 360px;
+      padding: 28px;
+      background: rgba(255,31,31,0.08);
+      border: 1px solid rgba(255,31,31,0.4);
+      border-radius: 8px;
+      font-family: "Space Mono", monospace;
+      font-size: 14px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      opacity: 0;
+    }
+    .counter .sidebar .row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.12);
+    }
+    .counter .sidebar .row:last-child { border-bottom: none; }
+    .counter .sidebar .row b { color: var(--red); font-weight: 700; }
+
+    /* ===== act 3: venue list ===== */
+
+    .venues {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: center;
+      padding-left: 140px;
+      gap: 4px;
+      opacity: 0;
+    }
+    .venues .v {
+      position: relative;
+      font-family: "Anton", sans-serif;
+      font-size: 160px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #fff;
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+    .venues .v.hot { color: var(--red); }
+    .venues .v.outline {
+      color: transparent;
+      -webkit-text-stroke: 3px rgba(255,255,255,0.5);
+    }
+    .venues .v .num {
+      position: absolute;
+      top: 30px; left: -110px;
+      font-family: "Space Mono", monospace;
+      font-size: 22px;
+      letter-spacing: 0.28em;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .venues-side {
+      position: absolute; right: 120px; top: 50%;
+      transform: translateY(-50%);
+      width: 320px;
+      font-family: "Space Mono", monospace;
+      font-size: 16px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--gray);
+      opacity: 0;
+    }
+    .venues-side h4 {
+      margin: 0 0 12px;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 28px; letter-spacing: 0.22em; color: #fff; font-weight: 400;
+    }
+    .venues-side p { margin: 0 0 18px; line-height: 1.55; }
+    .venues-side .pill {
+      display: inline-block;
+      padding: 8px 14px;
+      background: var(--red); color: #fff;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    /* ===== act 4: claim ===== */
+
+    .claim {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 24px;
+      opacity: 0;
+    }
+    .claim .kicker {
+      font-family: "Space Mono", monospace;
+      font-size: 22px; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--red);
+    }
+    .claim .head {
+      font-family: "Anton", sans-serif;
+      font-size: 240px;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
+      color: #fff;
+      text-align: center;
+      max-width: 1500px;
+    }
+    .claim .head .red { color: var(--red); }
+    .claim .underline {
+      width: 0;
+      height: 6px;
+      background: var(--red);
+    }
+
+    /* ===== act 5: CTA ===== */
+
+    .cta {
+      position: absolute; inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      opacity: 0;
+    }
+    .cta .left {
+      padding: 0 80px 0 140px;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+    .cta .left .kicker {
+      font-family: "Space Mono", monospace;
+      font-size: 18px; letter-spacing: 0.36em; text-transform: uppercase;
+      color: var(--red);
+    }
+    .cta .left .head {
+      font-family: "Anton", sans-serif;
+      font-size: 200px;
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+    .cta .left .head .red { color: var(--red); }
+    .cta .left .row {
+      display: flex; align-items: center; gap: 28px;
+      margin-top: 12px;
+    }
+    .cta .left .pill {
+      padding: 18px 36px;
+      background: var(--red); color: #fff;
+      border-radius: 999px;
+      font-family: "Inter", sans-serif; font-weight: 800;
+      font-size: 24px; letter-spacing: 0.18em; text-transform: uppercase;
+      box-shadow: 0 0 40px rgba(255,31,31,0.45);
+    }
+    .cta .left .url {
+      font-family: "Space Mono", monospace; font-weight: 700;
+      font-size: 24px; letter-spacing: 0.22em; color: var(--gray);
+    }
+    .cta .right {
+      padding: 0 140px 0 60px;
+      display: flex; flex-direction: column; gap: 16px;
+      font-family: "Space Mono", monospace;
+      font-size: 16px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+    }
+    .cta .right .stat {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 22px;
+      align-items: baseline;
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .cta .right .stat .num {
+      font-family: "Anton", sans-serif;
+      font-size: 64px; line-height: 0.9; letter-spacing: -0.02em;
+      color: var(--red);
+    }
+    .cta .right .stat .lbl { color: #fff; font-weight: 700; }
+    .cta .right .stat .meta { color: var(--gray); font-size: 13px; margin-top: 4px; }
+
+    /* glitch slice transitions */
+    .glitch {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .glitch .slice {
+      position: absolute; left: 0; right: 0;
+      background: var(--red);
+      transform: translateX(-110%);
+    }
+    .glitch .slice.s1 { top: 12%; height: 18%; }
+    .glitch .slice.s2 { top: 38%; height: 8%;  }
+    .glitch .slice.s3 { top: 58%; height: 22%; }
+    .glitch .slice.s4 { top: 86%; height: 6%;  }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="acme-live-event"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+  >
+    <!-- corner marks always visible -->
+    <div class="ch-mark tl"></div>
+    <div class="ch-mark tr"></div>
+    <div class="ch-mark bl"></div>
+    <div class="ch-mark br"></div>
+
+    <!-- broadcast HUD -->
+    <div class="hud" id="hud">
+      <div class="live"><span class="dot" id="hud-dot"></span><span class="label">LIVE</span><span style="color:rgba(255,255,255,0.55)">ON-SITE PRINT</span></div>
+      <div class="tc"><span class="rec"></span><span id="tc-time">00:00:42:18</span></div>
+      <div class="geo"><span>LAT 40.7128</span><span>LON -74.0060</span><span>CH 03</span></div>
+      <div class="ch"><span>SIG</span><span class="bar"></span><span>HOT</span></div>
+    </div>
+
+    <!-- act 1: kinetic title -->
+    <div class="clip" id="act1" data-start="0" data-duration="3" data-track-index="0">
+      <div class="title" id="title">
+        <div class="row">
+          <span class="ghost-r">LIVE</span>
+          <span class="ghost-c">LIVE</span>
+          <span style="position:relative">LIVE</span>
+        </div>
+        <div class="row alt"><span class="outline">PRINTING</span><span style="color:var(--red)">.</span></div>
+      </div>
+      <div class="title-tape" id="title-tape">
+        ON-SITE · ONE-OFF · OVERNIGHT · IN-VENUE · ON-DEMAND · ANYWHERE
+      </div>
+    </div>
+
+    <!-- act 2: counter -->
+    <div class="clip" id="act2" data-start="2.8" data-duration="2.7" data-track-index="1">
+      <div class="counter" id="counter">
+        <div class="digits" id="digits">
+          <span class="d" id="d1">0</span>
+          <span class="d" id="d2">0</span>
+          <span class="d" id="d3">0</span>
+        </div>
+        <div class="label">SHIRTS PRESSED</div>
+        <div class="sub">in a single 60-minute set · last gig</div>
+        <div class="sidebar" id="counter-sidebar">
+          <div class="row"><span>FORMAT</span><b>SCREEN</b></div>
+          <div class="row"><span>STATIONS</span><b>4</b></div>
+          <div class="row"><span>OPERATORS</span><b>3</b></div>
+          <div class="row"><span>INK</span><b>WATER-BASE</b></div>
+          <div class="row"><span>CURE</span><b>FLASH 30s</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- act 3: venue list -->
+    <div class="clip" id="act3" data-start="5.4" data-duration="2.6" data-track-index="2">
+      <div class="venues" id="venues">
+        <div class="v" id="v1"><span class="num">01</span>FESTIVALS</div>
+        <div class="v hot" id="v2"><span class="num">02</span>CONFERENCES</div>
+        <div class="v" id="v3"><span class="num">03</span>BRAND DROPS</div>
+        <div class="v outline" id="v4"><span class="num">04</span>POP-UPS</div>
+        <div class="v" id="v5"><span class="num">05</span>STADIUMS</div>
+      </div>
+      <div class="venues-side" id="venues-side">
+        <h4>WHERE WE SHOW UP</h4>
+        <p>One trailer, one crew. Pulls into the lot at 6, prints all night, gone by sunrise.</p>
+        <span class="pill">BOOK A TRUCK</span>
+      </div>
+    </div>
+
+    <!-- act 4: claim -->
+    <div class="clip" id="act4" data-start="7.9" data-duration="2.4" data-track-index="3">
+      <div class="claim" id="claim">
+        <div class="kicker">No more drop-ship excuses</div>
+        <div class="head">WE BRING<br/>THE <span class="red">PRESS</span><br/>TO YOU.</div>
+        <div class="underline" id="claim-underline"></div>
+      </div>
+    </div>
+
+    <!-- act 5: CTA -->
+    <div class="clip" id="act5" data-start="10.2" data-duration="3" data-track-index="4">
+      <div class="cta" id="cta">
+        <div class="left">
+          <div class="kicker">● BOOK YOUR DATE</div>
+          <div class="head">PRESS<br/>NIGHT.<br/><span class="red">YOURS.</span></div>
+          <div class="row">
+            <div class="pill">START A QUOTE →</div>
+            <div class="url">acmeprints.com/live</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="stat">
+            <span class="num">24h</span>
+            <div><div class="lbl">LEAD TIME</div><div class="meta">Last-minute bookings welcome</div></div>
+          </div>
+          <div class="stat">
+            <span class="num">4</span>
+            <div><div class="lbl">PRESS STATIONS</div><div class="meta">Up to 250 units / hour</div></div>
+          </div>
+          <div class="stat">
+            <span class="num">25y</span>
+            <div><div class="lbl">ON-SITE EXPERIENCE</div><div class="meta">Festivals · Sports · Brand</div></div>
+          </div>
+          <div class="stat">
+            <span class="num">∞</span>
+            <div><div class="lbl">COLOR OPTIONS</div><div class="meta">Pantone-matched · sampled live</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- glitch slices -->
+    <div class="glitch" id="glitch">
+      <div class="slice s1"></div>
+      <div class="slice s2"></div>
+      <div class="slice s3"></div>
+      <div class="slice s4"></div>
+    </div>
+
+    <!-- strobe flash -->
+    <div class="strobe" id="strobe"></div>
+
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+    <div class="grain"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script>
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+
+      // --- 0.0 :: opening strobe + HUD on ---
+      tl.fromTo("#strobe", { opacity: 0 }, { opacity: 0.85, duration: 0.06 }, 0.0);
+      tl.to("#strobe", { opacity: 0, duration: 0.18 }, 0.08);
+      tl.fromTo("#strobe", { opacity: 0 }, { opacity: 0.55, duration: 0.05 }, 0.32);
+      tl.to("#strobe", { opacity: 0, duration: 0.15 }, 0.4);
+
+      tl.fromTo("#hud", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.4);
+
+      // pulsing live dot
+      tl.to("#hud-dot", {
+        opacity: 0.3,
+        duration: 0.5,
+        yoyo: true,
+        repeat: 24,
+        ease: "sine.inOut"
+      }, 0.6);
+
+      // ticking timecode
+      const tcEl = document.getElementById("tc-time");
+      let tcStart = 0;
+      tl.to({}, {
+        duration: 13,
+        onUpdate: function() {
+          const t = (this.totalTime() - tcStart);
+          if (t < 0) return;
+          const total = Math.floor(t * 24);
+          const ff = String(total % 24).padStart(2, "0");
+          const ss = String(Math.floor(total / 24) % 60).padStart(2, "0");
+          const mm = String(Math.floor(total / 24 / 60) % 60).padStart(2, "0");
+          tcEl.textContent = `00:${mm}:${ss}:${ff}`;
+        }
+      }, 0);
+
+      // --- 0.5 :: title slams in with chromatic shift ---
+      tl.fromTo("#title",
+        { opacity: 0, scale: 1.3, rotation: -10 },
+        { opacity: 1, scale: 1, rotation: -6, duration: 0.5, ease: "power4.out" },
+        0.5
+      );
+      // chromatic ghosts settle
+      tl.fromTo(".title .ghost-r",
+        { x: -120, y: 30, opacity: 0.9 },
+        { x: -12, y: 4, duration: 0.4, ease: "power3.out" },
+        0.55
+      );
+      tl.fromTo(".title .ghost-c",
+        { x: 120, y: -30, opacity: 0.9 },
+        { x: 10, y: -4, duration: 0.4, ease: "power3.out" },
+        0.55
+      );
+      // tape strip slides in
+      tl.fromTo("#title-tape",
+        { opacity: 0, x: -300, rotation: -8 },
+        { opacity: 1, x: 0, rotation: -2, duration: 0.5, ease: "power3.out" },
+        1.1
+      );
+
+      // hold + subtle shake
+      tl.to("#title", { x: 6, duration: 0.06, repeat: 5, yoyo: true }, 1.6);
+
+      // --- 2.5 :: glitch slices wipe out ---
+      tl.set("#glitch", { opacity: 1 }, 2.4);
+      tl.fromTo(".glitch .slice",
+        { x: "-110%" },
+        { x: "0%", duration: 0.18, stagger: 0.04, ease: "power4.in" },
+        2.4
+      );
+      tl.to(".glitch .slice",
+        { x: "110%", duration: 0.18, stagger: 0.04, ease: "power4.out" },
+        2.62
+      );
+      tl.set("#glitch", { opacity: 0 }, 2.85);
+      tl.set("#act1", { opacity: 0 }, 2.7);
+
+      // --- 2.8 :: counter act ---
+      tl.fromTo("#counter",
+        { opacity: 0, scale: 0.97 },
+        { opacity: 1, scale: 1, duration: 0.4 },
+        2.8
+      );
+      // odometer-style number ramp 000 -> 247
+      const d1 = document.getElementById("d1");
+      const d2 = document.getElementById("d2");
+      const d3 = document.getElementById("d3");
+      tl.to({ v: 0 }, {
+        v: 247,
+        duration: 1.2,
+        ease: "power2.out",
+        onUpdate: function() {
+          const n = Math.round(this.targets()[0].v);
+          const s = String(n).padStart(3, "0");
+          d1.textContent = s[0];
+          d2.textContent = s[1];
+          d3.textContent = s[2];
+        },
+        onComplete: () => {
+          d1.classList.add("lit");
+          d2.classList.add("lit");
+          d3.classList.add("lit");
+        }
+      }, 2.95);
+      tl.fromTo(".counter .label", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 4.05);
+      tl.fromTo(".counter .sub",   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 4.2);
+      tl.fromTo("#counter-sidebar", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.5 }, 3.4);
+
+      // --- 5.3 :: glitch out counter ---
+      tl.set("#glitch", { opacity: 1 }, 5.25);
+      tl.fromTo(".glitch .slice",
+        { x: "110%" },
+        { x: "0%", duration: 0.16, stagger: 0.04, ease: "power4.in" },
+        5.25
+      );
+      tl.to(".glitch .slice", { x: "-110%", duration: 0.16, stagger: 0.04, ease: "power4.out" }, 5.45);
+      tl.set("#glitch", { opacity: 0 }, 5.65);
+      tl.set("#act2", { opacity: 0 }, 5.5);
+
+      // --- 5.4 :: venue list ---
+      tl.set("#venues", { opacity: 1 }, 5.4);
+      const vs = ["#v1", "#v2", "#v3", "#v4", "#v5"];
+      vs.forEach((v, i) => {
+        tl.fromTo(v,
+          { opacity: 0, x: -60 },
+          { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" },
+          5.5 + i * 0.18
+        );
+      });
+      tl.fromTo("#venues-side",
+        { opacity: 0, x: 40 },
+        { opacity: 1, x: 0, duration: 0.5 },
+        6.2
+      );
+
+      // --- 7.7 :: glitch into claim ---
+      tl.set("#glitch", { opacity: 1 }, 7.65);
+      tl.fromTo(".glitch .slice",
+        { x: "-110%" },
+        { x: "0%", duration: 0.14, stagger: 0.03, ease: "power4.in" },
+        7.65
+      );
+      tl.to(".glitch .slice", { x: "110%", duration: 0.14, stagger: 0.03, ease: "power4.out" }, 7.83);
+      tl.set("#glitch", { opacity: 0 }, 8.0);
+      tl.set("#act3", { opacity: 0 }, 7.85);
+
+      // --- 7.9 :: claim ---
+      tl.fromTo("#claim",
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 0.5 },
+        7.9
+      );
+      tl.fromTo(".claim .kicker", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 8.0);
+      tl.fromTo(".claim .head",   { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 8.15);
+      tl.fromTo("#claim-underline", { width: 0 }, { width: 600, duration: 0.6, ease: "power3.out" }, 8.5);
+      // strobe accent on PRESS
+      tl.fromTo("#strobe", { opacity: 0 }, { opacity: 0.4, duration: 0.06 }, 8.55);
+      tl.to("#strobe", { opacity: 0, duration: 0.18 }, 8.62);
+
+      // --- 9.95 :: smash to CTA ---
+      tl.fromTo("#strobe", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 9.95);
+      tl.to("#strobe", { opacity: 0, duration: 0.4 }, 10.05);
+      tl.set("#act4", { opacity: 0 }, 10.05);
+
+      // --- 10.2 :: CTA ---
+      tl.fromTo("#cta",
+        { opacity: 0, scale: 0.97 },
+        { opacity: 1, scale: 1, duration: 0.5 },
+        10.1
+      );
+      tl.fromTo(".cta .left .kicker", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4 }, 10.25);
+      tl.fromTo(".cta .left .head",   { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55 }, 10.4);
+      tl.fromTo(".cta .left .row",    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 10.8);
+      tl.fromTo(".cta .right .stat",
+        { opacity: 0, x: 30 },
+        { opacity: 1, x: 0, duration: 0.4, stagger: 0.1 },
+        10.6
+      );
+
+      // hold ~13
+      tl.to({}, { duration: 2 }, 11.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["acme-live-event"] = tl;
+
+      if (!window.__hyperframesRuntime) {
+        window.addEventListener("load", () => tl.play(0));
+      }
+    </script>
+  </div>
+</body>
+</html>
